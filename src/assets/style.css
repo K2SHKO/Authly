@@ -8,14 +8,17 @@ body {
   background: linear-gradient(135deg, #4b0082, #008000);
   color: #2c3e50;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
   height: 100vh;
 }
 
 #app {
   text-align: center;
   color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
 }
 
 main {
@@ -23,6 +26,7 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex-grow: 1;
 }
 
 .welcome-message {
@@ -56,17 +60,98 @@ main {
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
-  margin-top: auto;
+  margin-top: 10px;
   border-radius: 25px;
   cursor: pointer;
   transition: background-color 0.3s ease, color 0.3s ease;
-  align-self: center;
   animation: fadeInUp 2s ease-in-out;
 }
 
 .center-button:hover {
   background-color: #42b983;
   color: white;
+}
+
+.panel {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  width: 300px;
+  margin: 20px auto;
+  animation: fadeIn 1.5s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.panel h2 {
+  color: #42b983;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+}
+
+.panel input {
+  width: 90%;
+  padding: 10px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+  font-size: 16px;
+}
+
+.action-button {
+  background-color: #42b983;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: #2e8b57;
+  transform: scale(1.05);
+}
+
+.switch-panel {
+  color: #42b983;
+  cursor: pointer;
+  margin-top: 15px;
+  font-size: 14px;
+  text-decoration: underline;
+}
+
+.user-panel {
+  text-align: center;
+  animation: fadeIn 1.5s ease-in-out;
+}
+
+.user-panel h1 {
+  color: #42b983;
+  font-size: 2.5em;
+}
+
+footer {
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #42b983;
+  text-align: center;
+  padding: 15px 0;
+  font-size: 0.9em;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+}
+
+footer p {
+  margin: 5px 0;
+}
+
+footer .powered-by {
+  font-style: italic;
+  font-size: 0.8em;
 }
 
 @keyframes fadeIn {
