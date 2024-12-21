@@ -4,7 +4,7 @@
     <header class="site-header">
       <h1>Authly</h1>
       <nav>
-        <button @click="$router.push('/login')" class="nav-button">Login</button>
+        <button @click="handleLoginClick" class="nav-button">Login</button>
         <button @click="$router.push('/register')" class="nav-button">Sign Up</button>
       </nav>
     </header>
@@ -16,7 +16,7 @@
           Welcome to <span class="typed-text"></span>
         </h2>
         <p>Secure your digital space with our next-gen authentication solution.</p>
-        <button class="cta-button" @click="$router.push('/login')">Get Started</button>
+        <button class="cta-button" @click="handleLoginClick">Get Started</button>
       </div>
     </main>
 
@@ -109,6 +109,8 @@
 </template>
 
 <script>
+import CryptoJS from 'crypto-js';
+
 export default {
   name: 'HomePage',
   mounted() {
@@ -116,6 +118,24 @@ export default {
     this.initScrollReveal();
   },
   methods: {
+    handleLoginClick() {
+      const storedUser = localStorage.getItem('authlyUser');
+      if (storedUser) {
+        try {
+          const bytes = CryptoJS.AES.decrypt(storedUser, 'authly_secret_key');
+          const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+          if (new Date(decryptedData.expiration) > new Date()) {
+            this.$router.push('/dashboard');
+            return;
+          }
+        } catch (error) {
+          console.error('Failed to decrypt user data:', error);
+          localStorage.removeItem('authlyUser');
+        }
+      }
+      this.$router.push('/login');
+    },
+
     initTypedText() {
       const typedTextEl = document.querySelector('.typed-text');
       const texts = ['Authly ', 'Next-Gen Auth ', 'Your Secure Auth ', 'Your Secure Service'];
