@@ -20,12 +20,35 @@
   </template>
   
   <script>
+  import CryptoJS from 'crypto-js';
+  
   export default {
     name: 'DashboardPage',
     data() {
       return {
-        loggedInUsername: 'User',
+        loggedInUsername: '',
       };
+    },
+    mounted() {
+      const storedUser = localStorage.getItem('authlyUser');
+      if (storedUser) {
+        try {
+          const bytes = CryptoJS.AES.decrypt(storedUser, 'authly_secret_key');
+          const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+          if (new Date(decryptedData.expiration) > new Date() && decryptedData.username) {
+            this.loggedInUsername = decryptedData.username;
+          } else {
+            localStorage.removeItem('authlyUser');
+            this.$router.push('/login');
+          }
+        } catch (error) {
+          console.error('Failed to decrypt user data:', error);
+          localStorage.removeItem('authlyUser');
+          this.$router.push('/login');
+        }
+      } else {
+        this.$router.push('/login');
+      }
     },
     computed: {
       greetingMessage() {
@@ -37,9 +60,11 @@
     },
     methods: {
       logout() {
+        localStorage.removeItem('authlyUser');
         alert('Logged out successfully');
         this.$router.push('/');
       },
     },
   };
   </script>
+

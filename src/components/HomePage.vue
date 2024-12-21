@@ -118,7 +118,7 @@ export default {
   methods: {
     initTypedText() {
       const typedTextEl = document.querySelector('.typed-text');
-      const texts = ['AuthFlow', 'Next-Gen Auth', 'Your Secure Login'];
+      const texts = ['Authly ', 'Next-Gen Auth ', 'Your Secure Auth ', 'Your Secure Service'];
       let index = 0;
       let charIndex = 0;
       let currentText = '';
