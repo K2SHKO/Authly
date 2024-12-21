@@ -182,3 +182,305 @@ footer .powered-by {
     border-color: #42b983;
   }
 }
+
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+.home-container {
+  position: relative;
+  min-height: 100vh;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(to bottom, #141E30, #243B55);
+  /* We allow vertical scrolling */
+  overflow-y: auto;
+}
+
+/* CUSTOM SCROLLBAR */
+::-webkit-scrollbar {
+  width: 8px; /* width of the scrollbar */
+}
+::-webkit-scrollbar-track {
+  background: #1b2733; /* track color */
+}
+::-webkit-scrollbar-thumb {
+  background: #444; /* thumb color */
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* HEADER / NAV */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  position: sticky;
+  top: 0; /* So the header remains visible as you scroll */
+}
+
+.site-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-button {
+  border: 2px solid #00c6ff;
+  color: #00c6ff;
+  background: transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nav-button:hover {
+  background-color: #00c6ff;
+  color: #fff;
+}
+
+/* HERO SECTION */
+main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 60vh;
+  padding: 2rem;
+}
+
+.hero-content {
+  max-width: 600px;
+  animation: fadeIn 1.2s ease-in-out; /* fadeIn on load */
+}
+
+.hero-content h2 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.hero-content .typed-text {
+  border-right: 3px solid #00c6ff;
+  padding-right: 8px;
+  animation: blink 0.8s steps(1) infinite;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+  color: #ddd;
+}
+
+.cta-button {
+  background: #00c6ff;
+  border: none;
+  color: #fff;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.1rem;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cta-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 198, 255, 0.3);
+}
+
+/* TYPING & FADE-IN ANIMATIONS */
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* SCROLL REVEAL SECTIONS */
+.scroll-section {
+  max-width: 900px;
+  margin: 3rem auto;
+  text-align: center;
+  padding: 0 1rem;
+  opacity: 0; /* hidden by default */
+  transform: translateY(30px); /* shifted down initially */
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.scroll-section.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ABOUT SECTION */
+.about-section h3 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+.about-section p {
+  color: #ddd;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* FEATURES SECTION */
+.features-section h3 {
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
+}
+
+/* 
+   Używamy grid z repeat(auto-fill, minmax(...)) 
+   aby karty same się "zawijały" do nowego wiersza,
+   zależnie od dostępnej szerokości.
+*/
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 2rem;
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* Każda karta */
+.features-section h3 {
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
+}
+
+/* 2 wiersze, 3 kolumny w każdym rzędzie */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 kolumny */
+  grid-template-rows: repeat(2, auto);   /* 2 wiersze */
+  gap: 2rem;                             /* Odstęp między kartami */
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* Styl pojedynczej karty */
+.feature-card {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.feature-card .icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.feature-card h4 {
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+  color: #ddd;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+
+/* WAVE ANIMATION */
+.parallax > use {
+  animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite;
+}
+.parallax > use:nth-child(1) {
+  animation-delay: -2s;
+  animation-duration: 7s;
+}
+.parallax > use:nth-child(2) {
+  animation-delay: -3s;
+  animation-duration: 10s;
+}
+.parallax > use:nth-child(3) {
+  animation-delay: -4s;
+  animation-duration: 13s;
+}
+.parallax > use:nth-child(4) {
+  animation-delay: -5s;
+  animation-duration: 20s;
+}
+
+@keyframes move-forever {
+  0% {
+    transform: translate3d(-90px,0,0);
+  }
+  100% {
+    transform: translate3d(85px,0,0);
+  }
+}
+
+/* FOOTER */
+.site-footer {
+  background-color: #0d1622;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.site-footer .footer-content {
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.site-footer .footer-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.site-footer .footer-text {
+  color: #ccc;
+  margin: 0.5rem 0;
+}
+
+.site-footer .footer-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.site-footer .footer-links a {
+  color: #00c6ff;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.site-footer .footer-links a:hover {
+  color: #fff;
+}
