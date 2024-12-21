@@ -5,7 +5,7 @@ body {
   font-family: 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #4b0082, #008000);
+  /* background: linear-gradient(135deg, #4b0082, #008000); */
   color: #2c3e50;
   display: flex;
   flex-direction: column;
@@ -73,54 +73,78 @@ main {
 }
 
 .panel {
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(44, 62, 80, 0.3); 
   padding: 20px;
   border-radius: 10px;
   text-align: center;
-  width: 300px;
+  width: 350px; 
   margin: 20px auto;
   animation: fadeIn 1.5s ease-in-out;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 .panel h2 {
-  color: #42b983;
+  color: white;
   margin-bottom: 20px;
-  font-size: 1.5em;
+  font-size: 1.8em;
 }
 
 .panel input {
-  width: 90%;
-  padding: 10px;
-  margin: 10px 0;
-  border: none;
-  border-radius: 5px;
+  width: 95%;
+  padding: 12px; 
+  margin: 15px 0; 
+  border: 1px solid #2c3e50; 
+  border-radius: 8px;
   outline: none;
   font-size: 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  position: relative;
+}
+
+.panel input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform-origin: left;
+}
+
+.panel input:focus::placeholder {
+  transform: translateY(-20px) scale(0.8);
+  opacity: 0;
+}
+
+.panel input:focus {
+  border-color: white;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .action-button {
-  background-color: #42b983;
+  background-color: #2c3e50;
   border: none;
   color: white;
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: 12px 25px; 
+  font-size: 18px;
   border-radius: 25px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .action-button:hover {
-  background-color: #2e8b57;
+  background-color: #1a252f;
   transform: scale(1.05);
 }
 
 .switch-panel {
-  color: #42b983;
+  color: white;
   cursor: pointer;
   margin-top: 15px;
   font-size: 14px;
   text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.switch-panel:hover {
+  color: rgba(255, 255, 255, 0.7); 
 }
 
 .user-panel {
@@ -129,8 +153,8 @@ main {
 }
 
 .user-panel h1 {
-  color: #42b983;
-  font-size: 2.5em;
+  color: white;
+  font-size: 2.8em;
 }
 
 footer {
@@ -194,26 +218,23 @@ footer .powered-by {
   flex-direction: column;
   font-family: 'Montserrat', sans-serif;
   background: linear-gradient(to bottom, #141E30, #243B55);
-  /* We allow vertical scrolling */
   overflow-y: auto;
 }
 
-/* CUSTOM SCROLLBAR */
 ::-webkit-scrollbar {
-  width: 8px; /* width of the scrollbar */
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #1b2733; /* track color */
+  background: #1b2733;
 }
 ::-webkit-scrollbar-thumb {
-  background: #444; /* thumb color */
+  background: #444;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #666;
 }
 
-/* HEADER / NAV */
 .site-header {
   display: flex;
   justify-content: space-between;
@@ -223,7 +244,7 @@ footer .powered-by {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   z-index: 10;
   position: sticky;
-  top: 0; /* So the header remains visible as you scroll */
+  top: 0;
 }
 
 .site-header h1 {
@@ -252,7 +273,6 @@ nav {
   color: #fff;
 }
 
-/* HERO SECTION */
 main {
   display: flex;
   align-items: center;
@@ -264,7 +284,7 @@ main {
 
 .hero-content {
   max-width: 600px;
-  animation: fadeIn 1.2s ease-in-out; /* fadeIn on load */
+  animation: fadeIn 1.2s ease-in-out;
 }
 
 .hero-content h2 {
@@ -303,7 +323,6 @@ main {
   box-shadow: 0 8px 16px rgba(0, 198, 255, 0.3);
 }
 
-/* TYPING & FADE-IN ANIMATIONS */
 @keyframes blink {
   50% {
     border-color: transparent;
@@ -320,14 +339,13 @@ main {
   }
 }
 
-/* SCROLL REVEAL SECTIONS */
 .scroll-section {
   max-width: 900px;
   margin: 3rem auto;
   text-align: center;
   padding: 0 1rem;
-  opacity: 0; /* hidden by default */
-  transform: translateY(30px); /* shifted down initially */
+  opacity: 0;
+  transform: translateY(30px);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 .scroll-section.active {
@@ -335,7 +353,6 @@ main {
   transform: translateY(0);
 }
 
-/* ABOUT SECTION */
 .about-section h3 {
   font-size: 2rem;
   margin-bottom: 1rem;
@@ -346,17 +363,11 @@ main {
   line-height: 1.6;
 }
 
-/* FEATURES SECTION */
 .features-section h3 {
   font-size: 2.2rem;
   margin-bottom: 2rem;
 }
 
-/* 
-   Używamy grid z repeat(auto-fill, minmax(...)) 
-   aby karty same się "zawijały" do nowego wiersza,
-   zależnie od dostępnej szerokości.
-*/
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -365,23 +376,20 @@ main {
   margin-bottom: 2rem;
 }
 
-/* Każda karta */
 .features-section h3 {
   font-size: 2.2rem;
   margin-bottom: 2rem;
 }
 
-/* 2 wiersze, 3 kolumny w każdym rzędzie */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 kolumny */
-  grid-template-rows: repeat(2, auto);   /* 2 wiersze */
-  gap: 2rem;                             /* Odstęp między kartami */
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto); 
+  gap: 2rem;                            
   padding-bottom: 1rem;
   margin-bottom: 2rem;
 }
 
-/* Styl pojedynczej karty */
 .feature-card {
   background: rgba(255, 255, 255, 0.07);
   backdrop-filter: blur(8px);
@@ -414,7 +422,6 @@ main {
 }
 
 
-/* WAVE ANIMATION */
 .parallax > use {
   animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite;
 }
@@ -444,7 +451,6 @@ main {
   }
 }
 
-/* FOOTER */
 .site-footer {
   background-color: #0d1622;
   text-align: center;
@@ -484,3 +490,4 @@ main {
 .site-footer .footer-links a:hover {
   color: #fff;
 }
+
