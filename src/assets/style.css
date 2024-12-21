@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #4b0082, #008000);
+  color: #2c3e50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+#app {
+  text-align: center;
+  color: white;
+}
+
+main {
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.welcome-message {
+  text-align: left;
+  margin-bottom: 20px;
+  animation: fadeIn 2s ease-in-out;
+}
+
+.welcome-message h1 {
+  display: flex;
+  align-items: center;
+  font-size: 2.5em;
+}
+
+.typed-text {
+  border-right: 2px solid #42b983;
+  padding-right: 5px;
+  animation: blink 0.7s step-end infinite;
+  color: #42b983;
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-left: 10px;
+}
+
+.center-button {
+  background-color: transparent;
+  border: 2px solid #42b983;
+  color: #42b983;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin-top: auto;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  align-self: center;
+  animation: fadeInUp 2s ease-in-out;
+}
+
+.center-button:hover {
+  background-color: #42b983;
+  color: white;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  from, to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: #42b983;
+  }
+}
