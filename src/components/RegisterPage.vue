@@ -43,59 +43,37 @@ export default {
         password: '',
         email: '',
       },
-      ws: null,
-    };
-  },
-  mounted() {
-    this.ws = new WebSocket('ws://localhost:3001');
-
-    this.ws.onopen = () => {
-      console.log('WebSocket connection established');
-    };
-
-    this.ws.onmessage = (event) => {
-      const response = JSON.parse(event.data);
-      if (response.type === 'success') {
-        alert(response.message);
-        this.$router.push('/login');
-      } else if (response.type === 'error') {
-        alert(response.message);
-      }
-    };
-
-    this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      alert('WebSocket connection error. Please try again later.');
-    };
-
-    this.ws.onclose = () => {
-      console.log('WebSocket connection closed');
     };
   },
   methods: {
     goToLogin() {
       this.$router.push('/login');
     },
-    register() {
+    async register() {
       if (this.registerData.username && this.registerData.password && this.registerData.email) {
-        const payload = {
-          type: 'register',
-          payload: this.registerData,
-        };
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify(payload));
-        } else {
-          alert('WebSocket connection is not established');
+        try {
+          const response = await fetch('http://localhost:3000/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(this.registerData),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert(data.message);
+            this.$router.push('/login');
+          } else {
+            alert(data.message || 'Registration failed');
+          }
+        } catch (error) {
+          console.error('Registration error:', error);
+          alert('An error occurred. Please try again later.');
         }
       } else {
         alert('Please fill out all fields');
       }
     },
-  },
-  beforeDestroy() {
-    if (this.ws) {
-      this.ws.close();
-    }
   },
 };
 </script>

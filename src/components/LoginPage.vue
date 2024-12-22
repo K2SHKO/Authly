@@ -43,61 +43,44 @@ export default {
         username: '',
         password: '',
       },
-      ws: null,
-    };
-  },
-  mounted() {
-    this.ws = new WebSocket('ws://localhost:3001');
-
-    this.ws.onopen = () => {
-      console.log('WebSocket connection established');
-    };
-
-    this.ws.onmessage = (event) => {
-      const response = JSON.parse(event.data);
-      if (response.type === 'success') {
-        const expirationDate = new Date();
-        expirationDate.setDate(expirationDate.getDate() + 7);
-
-        const user = {
-          username: this.loginData.username,
-          expiration: expirationDate,
-        };
-
-        const encryptedData = CryptoJS.AES.encrypt(
-          JSON.stringify(user),
-          'authly_secret_key'
-        ).toString();
-
-        localStorage.setItem('authlyUser', encryptedData);
-
-        alert('Login successful');
-        this.$router.push('/dashboard');
-      } else if (response.type === 'error') {
-        alert(response.message);
-      }
-    };
-
-    this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      alert('WebSocket connection error. Please try again later.');
-    };
-
-    this.ws.onclose = () => {
-      console.log('WebSocket connection closed');
     };
   },
   methods: {
-    login() {
+    async login() {
       if (this.loginData.username && this.loginData.password) {
-        const payload = {
-          type: 'login',
-          payload: this.loginData,
-        };
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify(payload));
-        } else {
-          alert('WebSocket connection is not established');
+        try {
+          const response = await fetch('http://localhost:3000/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(this.loginData),
+          });
+          const data = await response.json();
+
+          if (response.ok && data.auth) {
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 7);
+
+            const user = {
+              username: data.username,
+              user_secret: data.user_secret,
+              expiration: expirationDate,
+            };
+
+            const encryptedData = CryptoJS.AES.encrypt(
+              JSON.stringify(user),
+              'authly_secret_key'
+            ).toString();
+
+            localStorage.setItem('authlyUser', encryptedData);
+
+            alert('Login successful');
+            this.$router.push('/dashboard');
+          } else {
+            alert(data.message || 'Invalid username or password');
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          alert('An error occurred. Please try again later.');
         }
       } else {
         alert('Please enter both username and password');
@@ -108,11 +91,6 @@ export default {
         this.$router.push(route);
       }
     },
-  },
-  beforeDestroy() {
-    if (this.ws) {
-      this.ws.close();
-    }
   },
 };
 </script>

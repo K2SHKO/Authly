@@ -117,27 +117,40 @@ app.post('/register', async (req, res) => {
     return res.status(400).json({ error: 'All fields are required.' });
   }
 
-  const checkQuery = 'SELECT * FROM users WHERE username = ?';
-  db.query(checkQuery, [username], async (err, results) => {
+  const lastIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+  const ipCheckQuery = 'SELECT * FROM users WHERE last_ip = ?';
+  db.query(ipCheckQuery, [lastIp], async (err, ipResults) => {
     if (err) {
       return res.status(500).json({ error: 'Server error' });
     }
-    if (results.length > 0) {
-      return res.status(400).json({ error: 'Username already exists.' });
+
+    if (ipResults.length > 0) {
+      return res.status(400).json({ error: 'Only one account can be registered per IP address.' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const randomSecret = crypto.randomBytes(15).toString('hex');
-
-    const insertQuery = `
-      INSERT INTO users (username, password, email, secret)
-      VALUES (?, ?, ?, ?)
-    `;
-    db.query(insertQuery, [username, hashedPassword, email, randomSecret], (err) => {
+    const checkQuery = 'SELECT * FROM users WHERE username = ?';
+    db.query(checkQuery, [username], async (err, results) => {
       if (err) {
-        return res.status(500).json({ error: 'Server error during registration' });
+        return res.status(500).json({ error: 'Server error' });
       }
-      res.json({ message: 'Registration successful' });
+      if (results.length > 0) {
+        return res.status(400).json({ error: 'Username already exists.' });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const randomSecret = crypto.randomBytes(15).toString('hex');
+
+      const insertQuery = `
+        INSERT INTO users (username, password, email, secret, last_ip)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+      db.query(insertQuery, [username, hashedPassword, email, randomSecret, lastIp], (err) => {
+        if (err) {
+          return res.status(500).json({ error: 'Server error during registration' });
+        }
+        res.json({ message: 'Registration successful' });
+      });
     });
   });
 });
@@ -153,36 +166,36 @@ app.get('/user/:username', (req, res) => {
   });
 });
 
-app.post("/licenses/:key/edit", (req, res) => {
+app.post('/licenses/:key/edit', (req, res) => {
   const { key } = req.params;
   const { duration, type, status } = req.body;
   db.query(
-    "UPDATE licenses SET duration = ?, type = ?, status = ? WHERE license_key = ?",
+    'UPDATE licenses SET duration = ?, type = ?, status = ? WHERE license_key = ?',
     [duration, type, status, key],
     (err) => {
-      if (err) return res.status(500).send("Failed to edit license");
-      res.send("License updated successfully");
+      if (err) return res.status(500).send('Failed to edit license');
+      res.send('License updated successfully');
     }
   );
 });
 
-app.post("/licenses/:key/ban", (req, res) => {
+app.post('/licenses/:key/ban', (req, res) => {
   const { key } = req.params;
   db.query(
     "UPDATE licenses SET status = 'banned' WHERE license_key = ?",
     [key],
     (err) => {
-      if (err) return res.status(500).send("Failed to ban license");
-      res.send("License banned successfully");
+      if (err) return res.status(500).send('Failed to ban license');
+      res.send('License banned successfully');
     }
   );
 });
 
-app.delete("/licenses/:key", (req, res) => {
+app.delete('/licenses/:key', (req, res) => {
   const { key } = req.params;
-  db.query("DELETE FROM licenses WHERE license_key = ?", [key], (err) => {
-    if (err) return res.status(500).send("Failed to delete license");
-    res.send("License deleted successfully");
+  db.query('DELETE FROM licenses WHERE license_key = ?', [key], (err) => {
+    if (err) return res.status(500).send('Failed to delete license');
+    res.send('License deleted successfully');
   });
 });
 
