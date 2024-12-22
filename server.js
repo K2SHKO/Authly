@@ -7,18 +7,17 @@ const helmet = require('helmet');
 const cors = require('cors');
 require('dotenv').config({ path: './secret.env' });
 
-
 const app = express();
+const PORT = parseInt(process.env.PORT, 10);
 
-// Pobieranie portu z pliku `.env`
-let PORT = parseInt(process.env.PORT, 10);
 if (isNaN(PORT) || PORT <= 0 || PORT >= 65536) {
   console.error('Invalid PORT value in .env file. Using default port 3000.');
-  PORT = 3000;
+  process.exit(1);
 }
 
 app.use(cors());
 app.use(helmet());
+app.use(express.json());
 
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -45,9 +44,9 @@ wss.on('connection', (ws, req) => {
     const data = JSON.parse(message);
 
     if (data.type === 'register') {
-      const { username, password, email } = data.payload;
+      const { username, password, email, avatar } = data.payload;
 
-      if (!username || !password || !email) {
+      if (!username || !password || !email || !avatar) {
         return ws.send(JSON.stringify({ type: 'error', message: 'All fields are required.' }));
       }
 
@@ -59,7 +58,7 @@ wss.on('connection', (ws, req) => {
 
         const ipCount = results[0].count;
         if (ipCount > 0) {
-          return ws.send(JSON.stringify({ type: 'error', message: 'Only one account is allowed.' }));
+          return ws.send(JSON.stringify({ type: 'error', message: 'Only one account per IP is allowed.' }));
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -68,13 +67,13 @@ wss.on('connection', (ws, req) => {
         const currentTimestamp = now.toISOString().slice(0, 19).replace('T', ' ');
 
         const insertQuery = `
-          INSERT INTO users (username, password, email, created_at, last_ip, ip_list, last_login, secret, plan, admin, banned)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'free', 0, 0)
+          INSERT INTO users (username, password, email, created_at, last_ip, ip_list, last_login, secret, plan, admin, banned, avatar)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'free', 0, 0, ?)
         `;
 
         db.query(
           insertQuery,
-          [username, hashedPassword, email, currentTimestamp, clientIp, clientIp, currentTimestamp, randomSecret],
+          [username, hashedPassword, email, currentTimestamp, clientIp, clientIp, currentTimestamp, randomSecret, avatar],
           (err) => {
             if (err) {
               return ws.send(JSON.stringify({ type: 'error', message: 'Server error during account creation' }));
@@ -121,6 +120,37 @@ wss.on('connection', (ws, req) => {
     }
   });
 });
+
+app.get('/user/:username', (req, res) => {
+  const { username } = req.params;
+  const query = 'SELECT plan, license_date, avatar FROM users WHERE username = ?';
+  db.query(query, [username], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(500).json({ error: 'Failed to fetch user data' });
+    }
+    res.json(results[0]);
+  });
+});
+
+const monitorPlans = () => {
+  const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+  const query = `
+    UPDATE users
+    SET plan = 'free', license_date = NULL
+    WHERE license_date IS NOT NULL AND license_date < ?
+  `;
+
+  db.query(query, [now], (err, results) => {
+    if (err) {
+      console.error('Error updating expired plans:', err);
+    } else if (results.affectedRows > 0) {
+      console.log(`Updated ${results.affectedRows} expired plans to 'free'.`);
+    }
+  });
+};
+
+setInterval(monitorPlans, 60 * 1000);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

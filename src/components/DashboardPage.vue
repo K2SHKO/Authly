@@ -13,10 +13,10 @@
     <div class="main-section">
       <aside class="sidebar">
         <div class="user-info">
-          <img class="user-avatar" src="" alt="User Avatar" />
+          <img class="user-avatar" :src="userAvatar" alt="User Avatar" />
           <h3 class="username">{{ loggedInUsername }}</h3>
           <p class="expires">Expires: {{ expirationDays }} days</p>
-          <button class="plan-button">{{ userPlan }}</button>
+          <button class="plan-button">{{ userPlan.toUpperCase() }} PLAN</button>
         </div>
 
         <ul>
@@ -130,32 +130,13 @@ export default {
   name: "DashboardPage",
   data() {
     return {
-      loggedInUsername: "K1SHKO",
-      expirationDays: 139,
-      userPlan: "SELLER PLAN",
+      loggedInUsername: "User",
+      expirationDays: 0,
+      userPlan: "FREE",
+      userAvatar: "",
       currentPage: "home",
-      licenses: [
-        {
-          key: "test-CdRsoskc",
-          creationDate: "2024-07-09 @ 10:46 PM",
-          generatedBy: "Goomba",
-          duration: "10 Year(s)",
-          note: "N/A",
-          usedOn: "2024-07-09 @ 10:46 PM",
-          usedBy: "2137",
-          status: "Used",
-        },
-        // Add more license entries as needed
-      ],
+      licenses: [],
     };
-  },
-  components: {
-    home: {
-      template: `<div><h2>Welcome to the Dashboard!</h2><p>This is your personalized space.</p></div>`,
-    },
-    settings: {
-      template: `<div><h2>Settings</h2><p>Update your preferences here.</p></div>`,
-    },
   },
   computed: {
     currentPageComponent() {
@@ -177,6 +158,7 @@ export default {
         const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
         if (new Date(decryptedData.expiration) > new Date() && decryptedData.username) {
           this.loggedInUsername = decryptedData.username;
+          this.fetchUserData(decryptedData.username);
         } else {
           localStorage.removeItem("authlyUser");
           this.$router.push("/login");
@@ -191,201 +173,30 @@ export default {
     }
   },
   methods: {
+    async fetchUserData(username) {
+      try {
+        const response = await fetch(`http://localhost:3000/user/${username}`);
+        const data = await response.json();
+        this.userPlan = data.plan || "FREE";
+        this.userAvatar = data.avatar || "default-avatar.png";
+        const licenseDate = new Date(data.license_date);
+        const today = new Date();
+        this.expirationDays = Math.max(0, Math.ceil((licenseDate - today) / (1000 * 60 * 60 * 24)));
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        alert("Failed to fetch user data");
+      }
+    },
     navigate(page) {
       this.currentPage = page;
     },
     logout() {
       localStorage.removeItem("authlyUser");
       alert("Logged out successfully");
-      this.$router.push("/");
-    },
-    generateKey() {
-      alert("Key generation feature not implemented yet!");
+      this.$router.push("/login");
     },
   },
 };
 </script>
 
-<style>
-body {
-  background-color: #1e1e1e;
-  color: #d4d4d4;
-  font-family: Arial, sans-serif;
-}
-
-.user-info {
-  background-color: #2d2d2d;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 20px;
-  text-align: center;
-  color: #ffffff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-.user-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  margin-bottom: 10px;
-}
-
-.username {
-  font-size: 18px;
-  font-weight: bold;
-  color: #007bff;
-}
-
-.expires {
-  font-size: 14px;
-  color: #cccccc;
-}
-
-.plan-button {
-  margin-top: 10px;
-  background-color: transparent;
-  color: #007bff;
-  border: 1px solid #007bff;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.plan-button:hover {
-  background-color: #007bff;
-  color: #ffffff;
-}
-
-.tab-button {
-  cursor: pointer;
-  padding: 10px 15px;
-  margin: 5px 0;
-  color: #ffffff;
-  background-color: #2d2d2d;
-  border-radius: 4px;
-  transition: transform 0.2s, background-color 0.3s;
-}
-
-.tab-button:hover {
-  background-color: #505050;
-  transform: scale(1.05);
-}
-
-.licenses-header {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.licenses-title {
-  font-size: 28px;
-  font-weight: bold;
-  color: #ffffff;
-  padding: 10px;
-  margin-left: 10px;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-secondary:hover {
-  background-color: #565e64;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-.btn-action {
-  background-color: #ffc107;
-  color: #212529;
-  border: none;
-  padding: 5px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-action:hover {
-  background-color: #e0a800;
-}
-
-.licenses-panel {
-  background: #2d2d2d;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-.licenses-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.licenses-table th, .licenses-table td {
-  border: 1px solid #3c3c3c;
-  padding: 8px;
-  text-align: left;
-}
-
-.licenses-table th {
-  background-color: #404040;
-  font-weight: bold;
-}
-
-.fade-slide-enter-active, .fade-slide-leave-active {
-  transition: opacity 0.5s, transform 0.5s;
-}
-
-.fade-slide-enter {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
-}
-</style>
 <style src="../assets/dashboard.css"></style>
