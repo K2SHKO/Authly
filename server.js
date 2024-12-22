@@ -2,7 +2,6 @@ const express = require('express');
 const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const WebSocket = require('ws');
 const helmet = require('helmet');
 const cors = require('cors');
 require('dotenv').config({ path: './secret.env' });
@@ -11,7 +10,6 @@ const app = express();
 const PORT = parseInt(process.env.PORT, 10);
 
 if (isNaN(PORT) || PORT <= 0 || PORT >= 65536) {
-  console.error('Invalid PORT value in .env file. Using default port 3000.');
   process.exit(1);
 }
 
@@ -27,103 +25,126 @@ const db = mysql.createConnection({
 });
 
 db.connect((err) => {
-  if (err) {
-    console.error('Database connection error:', err);
-    process.exit(1);
-  }
+  if (err) process.exit(1);
   console.log('Connected to MySQL database');
 });
 
-const wss = new WebSocket.Server({ port: PORT + 1 });
+app.post('/licenses', (req, res) => {
+  const { licenses } = req.body;
+  if (!licenses || licenses.length === 0) {
+    return res.status(400).json({ error: 'No licenses provided' });
+  }
 
-wss.on('connection', (ws, req) => {
-  const clientIp = req.socket.remoteAddress;
-  console.log(`New connection from IP: ${clientIp}`);
+  const values = licenses.map((license) => [
+    license.user_secret,
+    license.license_key,
+    license.duration,
+    license.type,
+    0,
+    null,
+    license.note || null,
+    license.generated_by || 'admin',
+    null,
+    'unused',
+    new Date().toISOString().slice(0, 19).replace('T', ' '),
+  ]);
 
-  ws.on('message', async (message) => {
-    const data = JSON.parse(message);
+  const query = `
+    INSERT INTO licenses 
+    (user_secret, license_key, duration, type, banned, ban_reason, note, generated_by, used_by, status, creation_date)
+    VALUES ?
+  `;
 
-    if (data.type === 'register') {
-      const { username, password, email, avatar } = data.payload;
+  db.query(query, [values], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to create licenses', details: err.message });
+    }
 
-      if (!username || !password || !email || !avatar) {
-        return ws.send(JSON.stringify({ type: 'error', message: 'All fields are required.' }));
+    res.json({ message: 'Licenses created successfully', affectedRows: results.affectedRows });
+  });
+});
+
+app.get('/licenses', (req, res) => {
+  const { user_secret } = req.query;
+
+  if (!user_secret) {
+    return res.status(400).json({ error: 'Missing user_secret parameter' });
+  }
+
+  const query = 'SELECT * FROM licenses WHERE user_secret = ?';
+
+  db.query(query, [user_secret], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to fetch licenses' });
+    }
+
+    res.json(results);
+  });
+});
+
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  const query = 'SELECT * FROM users WHERE username = ?';
+  db.query(query, [username], async (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Server error' });
+    }
+    if (results.length === 0) {
+      return res.status(401).json({ auth: false, message: 'Invalid username or password' });
+    }
+
+    const user = results[0];
+    const match = await bcrypt.compare(password, user.password);
+
+    if (match) {
+      res.json({
+        auth: true,
+        message: 'Login successful',
+        username: user.username,
+        user_secret: user.secret,
+      });
+    } else {
+      res.status(401).json({ auth: false, message: 'Invalid username or password' });
+    }
+  });
+});
+
+app.post('/register', async (req, res) => {
+  const { username, password, email } = req.body;
+
+  if (!username || !password || !email) {
+    return res.status(400).json({ error: 'All fields are required.' });
+  }
+
+  const checkQuery = 'SELECT * FROM users WHERE username = ?';
+  db.query(checkQuery, [username], async (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Server error' });
+    }
+    if (results.length > 0) {
+      return res.status(400).json({ error: 'Username already exists.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const randomSecret = crypto.randomBytes(15).toString('hex');
+
+    const insertQuery = `
+      INSERT INTO users (username, password, email, secret)
+      VALUES (?, ?, ?, ?)
+    `;
+    db.query(insertQuery, [username, hashedPassword, email, randomSecret], (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Server error during registration' });
       }
-
-      const ipCheckQuery = 'SELECT COUNT(*) AS count FROM users WHERE last_ip = ?';
-      db.query(ipCheckQuery, [clientIp], async (err, results) => {
-        if (err) {
-          return ws.send(JSON.stringify({ type: 'error', message: 'Server error' }));
-        }
-
-        const ipCount = results[0].count;
-        if (ipCount > 0) {
-          return ws.send(JSON.stringify({ type: 'error', message: 'Only one account per IP is allowed.' }));
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const randomSecret = crypto.randomBytes(15).toString('hex');
-        const now = new Date();
-        const currentTimestamp = now.toISOString().slice(0, 19).replace('T', ' ');
-
-        const insertQuery = `
-          INSERT INTO users (username, password, email, created_at, last_ip, ip_list, last_login, secret, plan, admin, banned, avatar)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'free', 0, 0, ?)
-        `;
-
-        db.query(
-          insertQuery,
-          [username, hashedPassword, email, currentTimestamp, clientIp, clientIp, currentTimestamp, randomSecret, avatar],
-          (err) => {
-            if (err) {
-              return ws.send(JSON.stringify({ type: 'error', message: 'Server error during account creation' }));
-            }
-            ws.send(JSON.stringify({ type: 'success', message: 'Account successfully created.' }));
-          }
-        );
-      });
-    }
-
-    if (data.type === 'login') {
-      const { username, password } = data.payload;
-
-      const query = 'SELECT * FROM users WHERE username = ?';
-      db.query(query, [username], async (err, results) => {
-        if (err) {
-          return ws.send(JSON.stringify({ type: 'error', message: 'Server error' }));
-        }
-        if (results.length === 0) {
-          return ws.send(JSON.stringify({ type: 'error', message: 'Invalid username or password.' }));
-        }
-
-        const user = results[0];
-        const match = await bcrypt.compare(password, user.password);
-
-        if (match) {
-          const now = new Date();
-          const currentTimestamp = now.toISOString().slice(0, 19).replace('T', ' ');
-          const updateQuery = `
-            UPDATE users
-            SET last_login = ?, last_ip = ?, ip_list = IFNULL(CONCAT(ip_list, ?, ','), ?)
-            WHERE id = ?
-          `;
-          db.query(updateQuery, [currentTimestamp, clientIp, clientIp, clientIp, user.id], (err) => {
-            if (err) {
-              return ws.send(JSON.stringify({ type: 'error', message: 'Error updating user data' }));
-            }
-            ws.send(JSON.stringify({ type: 'success', message: 'Login successful' }));
-          });
-        } else {
-          ws.send(JSON.stringify({ type: 'error', message: 'Invalid username or password.' }));
-        }
-      });
-    }
+      res.json({ message: 'Registration successful' });
+    });
   });
 });
 
 app.get('/user/:username', (req, res) => {
   const { username } = req.params;
-  const query = 'SELECT plan, license_date, avatar FROM users WHERE username = ?';
+  const query = 'SELECT plan, license_date, avatar, secret FROM users WHERE username = ?';
   db.query(query, [username], (err, results) => {
     if (err || results.length === 0) {
       return res.status(500).json({ error: 'Failed to fetch user data' });
@@ -132,25 +153,23 @@ app.get('/user/:username', (req, res) => {
   });
 });
 
-const monitorPlans = () => {
+const monitorLicenses = () => {
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
   const query = `
-    UPDATE users
-    SET plan = 'free', license_date = NULL
-    WHERE license_date IS NOT NULL AND license_date < ?
+    UPDATE licenses
+    SET status = 'expired'
+    WHERE status = 'active' AND DATE_ADD(creation_date, INTERVAL duration DAY) < ?
   `;
 
   db.query(query, [now], (err, results) => {
     if (err) {
-      console.error('Error updating expired plans:', err);
-    } else if (results.affectedRows > 0) {
-      console.log(`Updated ${results.affectedRows} expired plans to 'free'.`);
+      console.error('Error updating expired licenses:', err);
     }
   });
 };
 
-setInterval(monitorPlans, 60 * 1000);
+setInterval(monitorLicenses, 60 * 1000);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
