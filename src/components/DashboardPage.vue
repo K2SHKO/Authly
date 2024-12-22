@@ -19,25 +19,34 @@
           <button class="plan-button">{{ userPlan.toUpperCase() }} PLAN</button>
         </div>
         <ul>
-          <li 
-              @click="navigate('Licenses')" 
-              :class="{ active: currentPage === 'Licenses' }" 
-              class="menu-item tab-button"
+          <li
+            @click="navigate('Licenses')"
+            :class="{ active: currentPage === 'Licenses' }"
+            class="menu-item tab-button"
           >
-              <img src="../assets/svg/key-svgrepo-com.svg" alt="Licenses Icon" class="icon" />
-              Licenses
+            <img src="../assets/svg/key-svgrepo-com.svg" alt="Licenses Icon" class="icon" />
+            Licenses
+          </li>
+          <li
+            @click="navigate('Settings')"
+            :class="{ active: currentPage === 'Settings' }"
+            class="menu-item tab-button"
+          >
+            <img src="../assets/svg/settings-svgrepo-com.svg" alt="Settings Icon" class="icon" />
+            Settings
           </li>
         </ul>
       </aside>
-      
+
       <section class="content">
         <transition name="fade-slide">
           <div v-if="currentPage === 'Licenses'" class="licenses-tab">
             <div class="licenses-header">
               <h2 class="licenses-title">Licenses</h2>
-              <button class="btn-primary" @click="showCreateLicenseModal = true">Create Licenses</button>
+              <button class="btn-primary" @click="showCreateLicenseModal = true">
+                Create Licenses
+              </button>
             </div>
-
             <div class="licenses-panel">
               <table class="licenses-table">
                 <thead>
@@ -60,17 +69,36 @@
                     <td>{{ license.duration }}</td>
                     <td>{{ license.type }}</td>
                     <td>{{ license.note }}</td>
-                    <td class="status"><span :class="license.status">{{ license.status }}</span></td>
+                    <td class="status">
+                      <span :class="license.status">{{ license.status }}</span>
+                    </td>
                     <td>
                       <button class="btn-action edit" @click="editLicense(license)">Edit</button>
-                      <button v-if="license.status === 'banned'" class="btn-action unban" @click="unbanLicense(license)">Unban</button>
-                      <button v-else class="btn-action ban" @click="banLicense(license)">Ban</button>
-                      <button class="btn-action delete" @click="deleteLicense(license)">Delete</button>
+                      <button
+                        v-if="license.status === 'banned'"
+                        class="btn-action unban"
+                        @click="unbanLicense(license)"
+                      >
+                        Unban
+                      </button>
+                      <button
+                        v-else
+                        class="btn-action ban"
+                        @click="banLicense(license)"
+                      >
+                        Ban
+                      </button>
+                      <button class="btn-action delete" @click="deleteLicense(license)">
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
+          </div>
+          <div v-if="currentPage === 'Settings'">
+            <SettingsTab />
           </div>
         </transition>
       </section>
@@ -115,8 +143,10 @@
 
 <script>
 import CryptoJS from "crypto-js";
+import SettingsTab from './SettingsTab.vue';
 
 export default {
+  components: { SettingsTab },
   data() {
     return {
       loggedInUsername: "",
