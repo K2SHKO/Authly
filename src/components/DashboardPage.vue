@@ -1,63 +1,123 @@
 <template>
   <div class="dashboard">
-  <header class="site-header">
-    <h1 class="home-link" @click="$router.push('/')">Authly</h1>
-    <nav>
-      <div class="greeting">
-        {{ greetingMessage }}, {{ loggedInUsername }}!
-      </div>
-      <button class="logout-button" @click="logout">Logout</button>
-    </nav>
-  </header>
+    <header class="site-header">
+      <h1 class="home-link" @click="$router.push('/')">Authly</h1>
+      <nav>
+        <div class="greeting">
+          {{ greetingMessage }}, {{ loggedInUsername }}!
+        </div>
+        <button class="logout-button" @click="logout">Logout</button>
+      </nav>
+    </header>
 
     <div class="main-section">
       <aside class="sidebar">
+        <div class="user-info">
+          <img class="user-avatar" src="" alt="User Avatar" />
+          <h3 class="username">{{ loggedInUsername }}</h3>
+          <p class="expires">Expires: {{ expirationDays }} days</p>
+          <button class="plan-button">{{ userPlan }}</button>
+        </div>
+
         <ul>
-    <li 
-        @click="navigate('Licenses')" 
-        :class="{ active: currentPage === 'Licenses' }" 
-        class="menu-item"
-    >
-        <img src="../assets/svg/key-svgrepo-com.svg" alt="Licenses Icon" class="icon" />
-        Licenses
-    </li>
-    <li 
-        @click="navigate('Users')" 
-        :class="{ active: currentPage === 'Users' }" 
-        class="menu-item"
-    >
-        <img src="../assets/svg/user-alt-1-svgrepo-com.svg" alt="Users Icon" class="icon" />
-        Users
-    </li>
-    <li 
-        @click="navigate('Webhooks')" 
-        :class="{ active: currentPage === 'Webhooks' }" 
-        class="menu-item"
-    >
-        <img src="../assets/svg/figma-svgrepo-com.svg" alt="Webhooks Icon" class="icon" />
-        Webhooks
-    </li>
-    <li 
-        @click="navigate('Files')" 
-        :class="{ active: currentPage === 'Files' }" 
-        class="menu-item"
-    >
-        <img src="../assets/svg/files-alt-svgrepo-com.svg" alt="Files Icon" class="icon" />
-        Files
-    </li>
-    <li 
-        @click="navigate('settings')" 
-        :class="{ active: currentPage === 'settings' }" 
-        class="menu-item"
-    >
-        <img src="../assets/svg/settings-svgrepo-com.svg" alt="Settings Icon" class="icon" />
-        Settings
-    </li>
-</ul>
+          <li 
+              @click="navigate('Licenses')" 
+              :class="{ active: currentPage === 'Licenses' }" 
+              class="menu-item tab-button"
+          >
+              <img src="../assets/svg/key-svgrepo-com.svg" alt="Licenses Icon" class="icon" />
+              Licenses
+          </li>
+          <li 
+              @click="navigate('Users')" 
+              :class="{ active: currentPage === 'Users' }" 
+              class="menu-item tab-button"
+          >
+              <img src="../assets/svg/user-alt-1-svgrepo-com.svg" alt="Users Icon" class="icon" />
+              Users
+          </li>
+          <li 
+              @click="navigate('Webhooks')" 
+              :class="{ active: currentPage === 'Webhooks' }" 
+              class="menu-item tab-button"
+          >
+              <img src="../assets/svg/figma-svgrepo-com.svg" alt="Webhooks Icon" class="icon" />
+              Webhooks
+          </li>
+          <li 
+              @click="navigate('Files')" 
+              :class="{ active: currentPage === 'Files' }" 
+              class="menu-item tab-button"
+          >
+              <img src="../assets/svg/files-alt-svgrepo-com.svg" alt="Files Icon" class="icon" />
+              Files
+          </li>
+          <li 
+              @click="navigate('settings')" 
+              :class="{ active: currentPage === 'settings' }" 
+              class="menu-item tab-button"
+          >
+              <img src="../assets/svg/settings-svgrepo-com.svg" alt="Settings Icon" class="icon" />
+              Settings
+          </li>
+        </ul>
       </aside>
 
       <section class="content">
-        <component :is="currentPageComponent"></component>
+        <transition name="fade-slide">
+          <component :is="currentPageComponent" v-if="currentPageComponent"></component>
+        </transition>
+        <transition name="fade-slide">
+          <div v-if="!currentPageComponent && currentPage === 'Licenses'" class="licenses-tab">
+            <div class="licenses-header">
+              <h2 class="licenses-title">Licenses</h2>
+            </div>
+
+            <div class="actions">
+              <button class="btn-primary">Create Keys</button>
+              <button class="btn-secondary">Add Time To Unused Keys</button>
+              <button class="btn-primary">Import Keys</button>
+              <button class="btn-primary">Export Keys</button>
+              <button class="btn-danger">Delete All Keys</button>
+              <button class="btn-danger">Delete All Unused Keys</button>
+            </div>
+
+            <div class="licenses-panel">
+              <table class="licenses-table">
+                <thead>
+                  <tr>
+                    <th>Select</th>
+                    <th>Key</th>
+                    <th>Creation Date</th>
+                    <th>Generated By</th>
+                    <th>Duration</th>
+                    <th>Note</th>
+                    <th>Used On</th>
+                    <th>Used By</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="license in licenses" :key="license.key">
+                    <td><input type="checkbox" /></td>
+                    <td>{{ license.key }}</td>
+                    <td>{{ license.creationDate }}</td>
+                    <td>{{ license.generatedBy }}</td>
+                    <td>{{ license.duration }}</td>
+                    <td>{{ license.note }}</td>
+                    <td>{{ license.usedOn }}</td>
+                    <td>{{ license.usedBy }}</td>
+                    <td>{{ license.status }}</td>
+                    <td>
+                      <button class="btn-action">Actions</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </transition>
       </section>
     </div>
   </div>
@@ -70,8 +130,23 @@ export default {
   name: "DashboardPage",
   data() {
     return {
-      loggedInUsername: "",
+      loggedInUsername: "K1SHKO",
+      expirationDays: 139,
+      userPlan: "SELLER PLAN",
       currentPage: "home",
+      licenses: [
+        {
+          key: "test-CdRsoskc",
+          creationDate: "2024-07-09 @ 10:46 PM",
+          generatedBy: "Goomba",
+          duration: "10 Year(s)",
+          note: "N/A",
+          usedOn: "2024-07-09 @ 10:46 PM",
+          usedBy: "2137",
+          status: "Used",
+        },
+        // Add more license entries as needed
+      ],
     };
   },
   components: {
@@ -84,7 +159,7 @@ export default {
   },
   computed: {
     currentPageComponent() {
-      return this.currentPage;
+      return this.currentPage === 'home' || this.currentPage === 'settings' ? this.currentPage : null;
     },
     greetingMessage() {
       const hour = new Date().getHours();
@@ -124,8 +199,193 @@ export default {
       alert("Logged out successfully");
       this.$router.push("/");
     },
+    generateKey() {
+      alert("Key generation feature not implemented yet!");
+    },
   },
 };
 </script>
 
+<style>
+body {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  font-family: Arial, sans-serif;
+}
+
+.user-info {
+  background-color: #2d2d2d;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.username {
+  font-size: 18px;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.expires {
+  font-size: 14px;
+  color: #cccccc;
+}
+
+.plan-button {
+  margin-top: 10px;
+  background-color: transparent;
+  color: #007bff;
+  border: 1px solid #007bff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.plan-button:hover {
+  background-color: #007bff;
+  color: #ffffff;
+}
+
+.tab-button {
+  cursor: pointer;
+  padding: 10px 15px;
+  margin: 5px 0;
+  color: #ffffff;
+  background-color: #2d2d2d;
+  border-radius: 4px;
+  transition: transform 0.2s, background-color 0.3s;
+}
+
+.tab-button:hover {
+  background-color: #505050;
+  transform: scale(1.05);
+}
+
+.licenses-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.licenses-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ffffff;
+  padding: 10px;
+  margin-left: 10px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-secondary:hover {
+  background-color: #565e64;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+.btn-action {
+  background-color: #ffc107;
+  color: #212529;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-action:hover {
+  background-color: #e0a800;
+}
+
+.licenses-panel {
+  background: #2d2d2d;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.licenses-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.licenses-table th, .licenses-table td {
+  border: 1px solid #3c3c3c;
+  padding: 8px;
+  text-align: left;
+}
+
+.licenses-table th {
+  background-color: #404040;
+  font-weight: bold;
+}
+
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: opacity 0.5s, transform 0.5s;
+}
+
+.fade-slide-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+</style>
 <style src="../assets/dashboard.css"></style>
