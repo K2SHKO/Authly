@@ -3,7 +3,7 @@
     <header class="site-header">
       <h1 class="home-link" @click="$router.push('/')">Authly</h1>
       <nav>
-        <button @click="handleLoginClick" class="nav-button">Login</button>
+        <button @click="goToLogin" class="nav-button">Login</button>
         <button @click="$router.push('/register')" class="nav-button">Sign Up</button>
       </nav>
     </header>
@@ -11,9 +11,9 @@
     <main>
       <div class="panel">
         <h2>Register</h2>
-        <input type="text" v-model="registerData.username" placeholder="Username">
-        <input type="password" v-model="registerData.password" placeholder="Password">
-        <input type="email" v-model="registerData.email" placeholder="Email">
+        <input type="text" v-model="registerData.username" placeholder="Username" />
+        <input type="password" v-model="registerData.password" placeholder="Password" />
+        <input type="email" v-model="registerData.email" placeholder="Email" />
         <button class="action-button" @click="register">Register</button>
         <p class="switch-panel" @click="$router.push('/login')">Already have an account? Login</p>
       </div>
@@ -34,8 +34,6 @@
 </template>
 
 <script>
-import CryptoJS from 'crypto-js'; // Import biblioteki CryptoJS
-
 export default {
   name: 'RegisterPage',
   data() {
@@ -45,54 +43,59 @@ export default {
         password: '',
         email: '',
       },
+      ws: null,
+    };
+  },
+  mounted() {
+    this.ws = new WebSocket('ws://localhost:3001');
+
+    this.ws.onopen = () => {
+      console.log('WebSocket connection established');
+    };
+
+    this.ws.onmessage = (event) => {
+      const response = JSON.parse(event.data);
+      if (response.type === 'success') {
+        alert(response.message);
+        this.$router.push('/login');
+      } else if (response.type === 'error') {
+        alert(response.message);
+      }
+    };
+
+    this.ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      alert('WebSocket connection error. Please try again later.');
+    };
+
+    this.ws.onclose = () => {
+      console.log('WebSocket connection closed');
     };
   },
   methods: {
-    handleLoginClick() {
-      const storedUser = localStorage.getItem('authlyUser');
-      if (storedUser) {
-        try {
-          const bytes = CryptoJS.AES.decrypt(storedUser, 'authly_secret_key');
-          const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-          if (new Date(decryptedData.expiration) > new Date()) {
-            this.$router.push('/dashboard');
-            return;
-          }
-        } catch (error) {
-          console.error('Failed to decrypt user data:', error);
-          localStorage.removeItem('authlyUser');
-        }
-      }
+    goToLogin() {
       this.$router.push('/login');
     },
-
-    async register() {
+    register() {
       if (this.registerData.username && this.registerData.password && this.registerData.email) {
-        try {
-          const response = await fetch('http://localhost:3000/register', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(this.registerData),
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-            alert(data.message || 'Registration successful');
-            this.$router.push('/login');
-          } else {
-            alert(data.error || 'An error occurred during registration');
-          }
-        } catch (error) {
-          console.error('Registration error:', error);
-          alert('An error occurred. Please try again later.');
+        const payload = {
+          type: 'register',
+          payload: this.registerData,
+        };
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify(payload));
+        } else {
+          alert('WebSocket connection is not established');
         }
       } else {
         alert('Please fill out all fields');
       }
     },
+  },
+  beforeDestroy() {
+    if (this.ws) {
+      this.ws.close();
+    }
   },
 };
 </script>

@@ -1,12 +1,11 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
-const cors = require('cors');
+const crypto = require('crypto');
+const WebSocket = require('ws');
 
 const app = express();
-app.use(bodyParser.json());
-app.use(cors());
+const PORT = 3000;
 
 // Połączenie z bazą danych
 const db = mysql.createConnection({
@@ -24,60 +23,53 @@ db.connect((err) => {
   console.log('Połączono z bazą danych MySQL');
 });
 
-// Endpoint do logowania
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
+// Tworzenie serwera WebSocket
+const wss = new WebSocket.Server({ port: 3001 });
 
-  const query = 'SELECT * FROM users WHERE username = ?';
-  db.query(query, [username], async (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: 'Błąd serwera' });
-    }
-    if (results.length === 0) {
-      return res.status(401).json({ auth: false, message: 'Nieprawidłowa nazwa użytkownika lub hasło.' });
-    }
+wss.on('connection', (ws) => {
+  console.log('Nowe połączenie WebSocket');
 
-    const user = results[0];
-    const match = await bcrypt.compare(password, user.password);
-    if (match) {
-      res.json({ auth: true, message: 'Login successful' });
-    } else {
-      res.status(401).json({ auth: false, message: 'Nieprawidłowa nazwa użytkownika lub hasło.' });
+  ws.on('message', async (message) => {
+    const data = JSON.parse(message);
+    if (data.type === 'login') {
+      const { username, password } = data.payload;
+
+      const query = 'SELECT * FROM users WHERE username = ?';
+      db.query(query, [username], async (err, results) => {
+        if (err) {
+          return ws.send(JSON.stringify({ type: 'error', message: 'Błąd serwera' }));
+        }
+        if (results.length === 0) {
+          return ws.send(JSON.stringify({ type: 'error', message: 'Nieprawidłowa nazwa użytkownika lub hasło.' }));
+        }
+
+        const user = results[0];
+        const match = await bcrypt.compare(password, user.password);
+        if (match) {
+          const now = new Date();
+          const currentTimestamp = now.toISOString().slice(0, 19).replace('T', ' ');
+          const clientIp = ws._socket.remoteAddress;
+
+          // Aktualizacja last_login, last_ip, i ip_list
+          const updateQuery = `
+            UPDATE users 
+            SET last_login = ?, last_ip = ?, ip_list = IFNULL(CONCAT(ip_list, ?, ','), ?)
+            WHERE id = ?
+          `;
+          db.query(updateQuery, [currentTimestamp, clientIp, clientIp, clientIp, user.id], (err) => {
+            if (err) {
+              return ws.send(JSON.stringify({ type: 'error', message: 'Błąd podczas aktualizacji danych użytkownika' }));
+            }
+            ws.send(JSON.stringify({ type: 'success', message: 'Login successful', user: { username } }));
+          });
+        } else {
+          ws.send(JSON.stringify({ type: 'error', message: 'Nieprawidłowa nazwa użytkownika lub hasło.' }));
+        }
+      });
     }
   });
 });
 
-// Endpoint do rejestracji
-app.post('/register', async (req, res) => {
-  const { username, password, email } = req.body;
-
-  // Prosta walidacja (usuń, jeśli nie chcesz)
-  if (!username || !password || !email) {
-    return res.status(400).json({ error: 'Wszystkie pola są wymagane.' });
-  }
-
-  const checkQuery = 'SELECT * FROM users WHERE username = ?';
-  db.query(checkQuery, [username], async (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: 'Błąd serwera' });
-    }
-    if (results.length > 0) {
-      return res.status(400).json({ error: 'Użytkownik o tej nazwie już istnieje.' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10); // Hashowanie hasła
-    const insertQuery = 'INSERT INTO users (username, password, email) VALUES (?, ?, ?)';
-    db.query(insertQuery, [username, hashedPassword, email], (err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Błąd serwera' });
-      }
-      res.json({ message: 'Rejestracja zakończona sukcesem.' });
-    });
-  });
-});
-
-// Uruchom serwer
-const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Serwer działa na porcie ${PORT}`);
 });
