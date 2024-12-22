@@ -18,7 +18,6 @@
           <p class="expires">Expires: {{ expirationDays }} days</p>
           <button class="plan-button">{{ userPlan.toUpperCase() }} PLAN</button>
         </div>
-
         <ul>
           <li 
               @click="navigate('Licenses')" 
@@ -56,7 +55,7 @@
                 <tbody>
                   <tr v-for="license in licenses" :key="license.license_key">
                     <td>{{ license.license_key }}</td>
-                    <td>{{ license.creation_date }}</td>
+                    <td>{{ formatDate(license.creation_date) }}</td>
                     <td>{{ license.generated_by }}</td>
                     <td>{{ license.duration }}</td>
                     <td>{{ license.type }}</td>
@@ -64,7 +63,8 @@
                     <td class="status"><span :class="license.status">{{ license.status }}</span></td>
                     <td>
                       <button class="btn-action edit" @click="editLicense(license)">Edit</button>
-                      <button class="btn-action ban" @click="banLicense(license)">Ban</button>
+                      <button v-if="license.status === 'banned'" class="btn-action unban" @click="unbanLicense(license)">Unban</button>
+                      <button v-else class="btn-action ban" @click="banLicense(license)">Ban</button>
                       <button class="btn-action delete" @click="deleteLicense(license)">Delete</button>
                     </td>
                   </tr>
@@ -152,30 +152,37 @@ export default {
       this.licenses = await response.json();
     },
     async deleteLicense(license) {
-      if (confirm(`Are you sure you want to delete license: ${license.license_key}?`)) {
-        await fetch(`http://localhost:3000/licenses/${license.license_key}`, {
-          method: "DELETE",
-        });
-        alert("License deleted successfully");
-        this.fetchLicenses();
-      }
+      await fetch(`http://localhost:3000/licenses/${license.license_key}`, {
+        method: "DELETE",
+      });
+      alert("License deleted successfully");
+      this.fetchLicenses();
     },
     async banLicense(license) {
-      if (confirm(`Are you sure you want to ban license: ${license.license_key}?`)) {
-        await fetch(`http://localhost:3000/licenses/${license.license_key}/ban`, {
-          method: "POST",
-        });
-        alert("License banned successfully");
-        this.fetchLicenses();
-      }
+      await fetch(`http://localhost:3000/licenses/${license.license_key}/ban`, {
+        method: "POST",
+      });
+      alert("License banned successfully");
+      this.fetchLicenses();
+    },
+    async unbanLicense(license) {
+      await fetch(`http://localhost:3000/licenses/${license.license_key}/edit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "active" }),
+      });
+      alert("License unbanned successfully");
+      this.fetchLicenses();
     },
     async editLicense(license) {
-      const newNote = prompt("Enter a new note for this license:", license.note);
-      if (newNote !== null) {
+      const newDuration = prompt("Enter new duration:", license.duration);
+      const newType = prompt("Enter new type (Day/Week/Month/Year):", license.type);
+      const newNote = prompt("Enter a new note:", license.note);
+      if (newDuration && newType && newNote !== null) {
         await fetch(`http://localhost:3000/licenses/${license.license_key}/edit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ note: newNote }),
+          body: JSON.stringify({ duration: newDuration, type: newType, note: newNote }),
         });
         alert("License updated successfully");
         this.fetchLicenses();
@@ -213,6 +220,10 @@ export default {
       alert("Logged out successfully");
       this.$router.push("/login");
     },
+    formatDate(date) {
+      const options = { year: "numeric", month: "short", day: "numeric" };
+      return new Date(date).toLocaleDateString(undefined, options);
+    },
   },
   mounted() {
     const storedUser = localStorage.getItem("authlyUser");
@@ -234,11 +245,6 @@ export default {
   },
 };
 </script>
-
-<style>
-/* Style pozostaje podobny z poprzednich propozycji */
-</style>
-
 
 <style>
 .modal-overlay {
@@ -263,6 +269,25 @@ export default {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+.licenses-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.licenses-table th, .licenses-table td {
+  padding: 10px;
+  text-align: left;
+}
+.status span {
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: white;
+}
+.status .banned {
+  background-color: red;
+}
+.status .active {
+  background-color: green;
 }
 </style>
 

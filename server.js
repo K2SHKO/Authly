@@ -153,6 +153,39 @@ app.get('/user/:username', (req, res) => {
   });
 });
 
+app.post("/licenses/:key/edit", (req, res) => {
+  const { key } = req.params;
+  const { duration, type, status } = req.body;
+  db.query(
+    "UPDATE licenses SET duration = ?, type = ?, status = ? WHERE license_key = ?",
+    [duration, type, status, key],
+    (err) => {
+      if (err) return res.status(500).send("Failed to edit license");
+      res.send("License updated successfully");
+    }
+  );
+});
+
+app.post("/licenses/:key/ban", (req, res) => {
+  const { key } = req.params;
+  db.query(
+    "UPDATE licenses SET status = 'banned' WHERE license_key = ?",
+    [key],
+    (err) => {
+      if (err) return res.status(500).send("Failed to ban license");
+      res.send("License banned successfully");
+    }
+  );
+});
+
+app.delete("/licenses/:key", (req, res) => {
+  const { key } = req.params;
+  db.query("DELETE FROM licenses WHERE license_key = ?", [key], (err) => {
+    if (err) return res.status(500).send("Failed to delete license");
+    res.send("License deleted successfully");
+  });
+});
+
 const monitorLicenses = () => {
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
