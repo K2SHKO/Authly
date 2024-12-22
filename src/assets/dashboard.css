@@ -429,27 +429,156 @@ body {
   }
   
   .licenses-panel {
-    background: #2d2d2d;
-    border-radius: 10px;
+    background: #243b55;
+    border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .licenses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .licenses-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 10px;
   }
   
   .licenses-table {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
-  
-  .licenses-table th, .licenses-table td {
-    border: 1px solid #3c3c3c;
-    padding: 8px;
-    text-align: left;
+    border-spacing: 0 10px; /* Oddziel wiersze wizualnie */
+    margin-top: 20px;
   }
   
   .licenses-table th {
-    background-color: #404040;
+    background: #2a4d69;
+    color: #ffffff;
+    text-align: left;
+    font-size: 14px;
     font-weight: bold;
+    padding: 12px;
+    border-radius: 8px 8px 0 0; /* Zaokrąglone rogi na górze */
+    border: none;
+  }
+  
+  .licenses-table td {
+    background: #1e3a55;
+    color: #dce3ed;
+    padding: 14px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  }
+  
+  .licenses-table td:first-child {
+    border-radius: 5px 0 0 5px; /* Zaokrąglone rogi po lewej */
+  }
+  
+  .licenses-table td:last-child {
+    border-radius: 0 5px 5px 0; /* Zaokrąglone rogi po prawej */
+  }
+  
+  .licenses-table tr:hover td {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .licenses-table th,
+  .licenses-table td:not(:last-child) {
+    text-align: left;
+  }
+  
+  .status {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+  
+  .status.active {
+    background-color: #4caf50;
+    color: #ffffff;
+  }
+  
+  .status.expired {
+    background-color: #f44336;
+    color: #ffffff;
+  }
+  
+  .status.unused {
+    background-color: #ff9800;
+    color: #ffffff;
+  }
+  
+  .status.banned {
+    background-color: #9c27b0;
+    color: #ffffff;
+  }
+  
+  /* Przyciski */
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-action {
+    padding: 10px 20px;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.2s ease;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+    color: #ffffff;
+  }
+  
+  .btn-primary:hover {
+    background-color: #0056b3;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-secondary {
+    background-color: #6c757d;
+    color: #ffffff;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #565e64;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-danger {
+    background-color: #dc3545;
+    color: #ffffff;
+  }
+  
+  .btn-danger:hover {
+    background-color: #c82333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-action {
+    background-color: #ffc107;
+    color: #212529;
+  }
+  
+  .btn-action:hover {
+    background-color: #e0a800;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
   
   .fade-slide-enter-active, .fade-slide-leave-active {
