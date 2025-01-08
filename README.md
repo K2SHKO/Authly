@@ -20,6 +20,7 @@ npm run build
 npm run lint
 ```
 
+### How to open a server 
 ```
 node server.js
 ```
